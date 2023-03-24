@@ -1,0 +1,222 @@
+/* Name: Nava Meadi
+ * Student Number: 100320572
+ * Course: CPSC 1181 Section 3
+ * Due Date: March 23th 2023
+ * Instructor: Hengahmeh Hamavand
+ * Purpose: To make a game with GUI
+ * BONUS FEATURE: When ball is clicked it gets smaller and smaller, and the colours are changed.
+ * Output: Displays interactive game
+ */
+
+package com.example.assignment8;
+
+import javafx.animation.AnimationTimer;
+import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
+
+public class Animation extends Application {
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    //Instance variables below:
+    private Rectangle background;
+    private Circle circle;
+    private int xVelocity = 2;
+    private BallAnimation animation;
+
+    private int clicksCounter = 0;
+    private int missesCounter = 0;
+    private Button pauseButton;
+    private Button resetButton;
+    private Text hitsText;
+    private Text missesText;
+
+    private boolean isPaused = true;
+    private int circleRadius = 30;
+
+    private Text gameOverText;
+
+    /**
+     *  Overridden method from Application class.
+     *  It creates and displays the game on a JavaFX stage.
+     * @param primaryStage The primary stage of the JavaFX application.
+     */
+    @Override
+    public void start(Stage primaryStage) {
+
+        Pane root = new Pane();
+        BorderPane root2 = new BorderPane();
+
+        // Background
+        background = new Rectangle(600, 500);
+        background.setFill(Color.BLUE);
+        root.getChildren().add(background);
+
+        //Buttons
+        pauseButton = new Button("Pause");
+        resetButton = new Button("Reset");
+
+        ButtonHandler buttonListener = new ButtonHandler();
+
+        pauseButton.setOnAction(buttonListener);
+        resetButton.setOnAction(buttonListener);
+
+        //Texts
+        hitsText = new Text("Hits: " + clicksCounter);
+        hitsText.setFill(Color.WHITE);
+        hitsText.setFont(new Font(20));
+
+        missesText = new Text("Misses: " + missesCounter);
+        missesText.setFill(Color.WHITE);
+        missesText.setFont(new Font(20));
+
+        gameOverText = new Text(150,250,"");
+        gameOverText.setFont( new Font(60));
+
+        root.getChildren().add(gameOverText);
+
+        //Adding the buttons to HBoxs and Roots
+        HBox buttons = new HBox(10, pauseButton, resetButton);
+        buttons.setAlignment(Pos.BOTTOM_RIGHT);
+        HBox texts = new HBox(10, hitsText, missesText);
+        texts.setAlignment(Pos.TOP_LEFT);
+
+        root2.setBottom(buttons);
+        root.getChildren().add(texts);
+        root2.setCenter(root);
+
+        root.setOnMouseClicked(new ClickedHandler());
+
+        //Original Circle
+        circle = new Circle(300, 250, circleRadius, Color.YELLOW);
+        root.getChildren().add(circle);
+
+        //Animation
+        animation = new BallAnimation();
+        animation.start();
+
+        // create a scene with the root pane and display it on the stage
+        Scene scene = new Scene(root2, 600, 550);
+
+        primaryStage.setTitle("Ball Game");
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
+        primaryStage.show();
+    }
+
+    /**
+     * A class that handles the animation of the circle in the ball game.
+     */
+    private class BallAnimation extends AnimationTimer {
+
+        /**
+         * An overridden method that handles the movement of the circle based on its current position and velocity.
+         * @param now The current timestamp.
+         */
+
+        @Override
+        public void handle(long now) {
+
+            //Getting current position of the circle
+            double x = circle.getCenterX();
+            double y = circle.getCenterY();
+
+            //If the circle goes off-screen of the right side
+            if (x + xVelocity > 600) {
+                x = -200; //Move the circle to the left side of the screen (as if it loops around)
+                y = 250; //Stays constant
+                missesCounter++; //increase number of misses counter
+                missesText.setText("Misses: " + missesCounter);
+            }
+            if (missesCounter == 5 ){
+                animation.stop();
+                gameOverText.setFill(Color.WHITE);
+                gameOverText.setText("Game Over");
+            } // if number of misses is 5, animations stops and game over apears.
+
+            x += xVelocity; //Moves circle based on velocity
+
+            //Updates position of circle
+            circle.setCenterX(x);
+            circle.setCenterY(y);
+        }
+    }
+
+    /**
+     * Handles the EventHandler interface to handle when Pause and Reset Buttons are clicked.
+     */
+    private class ButtonHandler implements EventHandler<ActionEvent> {
+        @Override
+        public void handle(ActionEvent e) {
+            // First if statements is if the pause button is clicked and the game is already paused, resume the game.
+            if (e.getSource() == pauseButton && isPaused) {
+                animation.stop();
+                isPaused = false;
+
+            } else {
+                animation.start();
+                isPaused = true;
+            } // else statement is if the pause button is clicked and the game is currently running, pause the game.
+
+            if (e.getSource() == resetButton){
+                missesCounter = 0;
+                missesText.setText("Misses: " + missesCounter);
+
+                clicksCounter = 0;
+                hitsText.setText("Hits: " + clicksCounter);
+
+                xVelocity = 2;
+                gameOverText.setText("");
+
+                circle.setRadius(30);
+                circle.setCenterX(300);
+            }  //the reset button is clicked, reset the game variables and UI elements.
+
+        }
+    }
+
+    /**
+     * Handles the MouseEvent triggered the circle is clicked,
+     * to increment the clicksCounter, reduce radius size, and speed up the game.
+     */
+    private class ClickedHandler implements EventHandler<MouseEvent>{
+        /**
+         * Handles the MouseEvent triggered by a mouse click on the Circle object.
+         * @param e MouseEvent object representing the mouse click.
+         */
+        @Override
+        public void handle(MouseEvent e) {
+            if(isPaused){
+                // Checks if the mouse click occurred inside the circle.
+                if(circle.contains(e.getX(), e.getY())){
+
+                    clicksCounter++; // Increments the hits counter and updates the hits text.
+                    hitsText.setText("Hits: " + clicksCounter);
+
+                    // Resets the circle to a new random position and adjusts the size and speed.
+                    circle.setCenterX(-200);
+                    circle.setCenterX(-200);
+                    xVelocity++;
+                    circle.setRadius(circleRadius--);
+                }
+            }
+        }
+    }
+}
+

@@ -1,10 +1,8 @@
-/* Name: Nava Meadi
- * Student Number: 100320572
- * Course: CPSC 1181 Section 3
- * Due Date: March 23th 2023
- * Instructor: Hengahmeh Hamavand
- * Purpose: To make a game with GUI
- * BONUS FEATURE: When ball is clicked it gets smaller and smaller, and the colours are changed.
+/* 
+ * Purpose: To make an interative ball game. Click on the ball, and it'll update a counter. Miss it more than 5x and the game stops. 
+ *          As you click on the ball, it speeds up and the ball gets smaller. 
+ *
+ * BONUS FEATURE: When ball is clicked it gets smaller and smaller.
  * Output: Displays interactive game
  */
 
